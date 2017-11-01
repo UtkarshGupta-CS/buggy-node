@@ -1,0 +1,29 @@
+{
+  "name": "buggy-node",
+  "version": "0.0.1",
+  "description": "Vulnerable Node Application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UtkarshGupta-CS/buggy-node.git"
+  },
+  "author": "Utkarsh Gupta",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/UtkarshGupta-CS/buggy-node/issues"
+  },
+  "homepage": "https://github.com/UtkarshGupta-CS/buggy-node#readme",
+  "dependencies": {
+    "axios": "^0.17.0",
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "express-session": "^1.15.6",
+    "jquery": "^3.2.1",
+    "jsonwebtoken": "^8.1.0",
+    "mongoose": "^4.12.4"
+  }
+}
