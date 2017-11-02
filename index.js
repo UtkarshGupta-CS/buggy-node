@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const url = require('url');
 const session = require('express-session');
+const path = require('path');
+
 const app = express();
 const port = process.env.PORT || 3000;
 const router = express.Router();
@@ -14,12 +16,40 @@ app.use(
     extended: true,
   })
 );
-/* app.use(session({
-  secret: process.env.JWT,
-  key: 'sid',
-})); */
+/* app.use(
+  session({
+    secret: 'huhuhu',
+  })
+); */
 app.use(express.static(__dirname));
 app.use('/api', appRoutes);
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname + '/login.html'));
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname + '/index.html'));
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.sendFile(path.join(__dirname + '/login.html'));
+});
+
+app.get('/redirect', (req, res) => {
+  const regex = /\/\//;
+  if (req.query.url) {
+    let urle = req.query.url;
+    let url = decodeURIComponent(urle);
+    if (regex.test(urle) && process.argv.slice(2)[0] !== 'unsecure') {
+      res.status('400').end('unvalidated redirection is not allowed');
+    } else {
+      res.redirect(url);
+    }
+  }
+  res.status('400').end('Bad request');
+});
 
 mongoose.connect('mongodb://localhost:27017/buggynode', err => {
   if (err) {
@@ -29,8 +59,6 @@ mongoose.connect('mongodb://localhost:27017/buggynode', err => {
   }
 });
 
-// if(url.parse(req.url))
 app.listen(port, () => {
   console.log('Running the server on port:' + port);
 });
-// console.log(process.argv.slice(2));

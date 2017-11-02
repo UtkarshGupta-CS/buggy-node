@@ -22,7 +22,7 @@ const UserSchema = new Schema({
 });
 
 //encrption of password using bcrypt-nodejs
-UserSchema.pre('save', next => {
+UserSchema.pre('save', function(next) {
   const user = this;
   bcrypt.hash(user.password, null, null, (err, hash) => {
     if (err) return next();
@@ -31,8 +31,8 @@ UserSchema.pre('save', next => {
   });
 });
 
-UserSchema.methods.comparePassword = password => {
-  return bcrypt.compareSync(password, this.password);
+UserSchema.methods.comparePassword = function(password) {
+  return bcrypt.compareSync(password, this.password)
 };
 
 module.exports = mongoose.model('User', UserSchema);

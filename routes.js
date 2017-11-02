@@ -1,12 +1,10 @@
 const User = require('./User');
 const jwt = require('jsonwebtoken');
 const secret = 'harrypotter';
-const path = require('path');
 
 module.exports = function(router) {
   //User Registration Route
-  router.post('/users', function(req, res) {
-    console.log(req.body);
+  router.post('/users', (req, res) => {
     const user = new User();
     user.username = req.body.username;
     user.password = req.body.password;
@@ -24,7 +22,7 @@ module.exports = function(router) {
         message: 'Ensure that username,email or password are provided',
       });
     } else {
-      user.save(function(err) {
+      user.save(err => {
         if (err) {
           res.json({
             success: false,
@@ -38,75 +36,51 @@ module.exports = function(router) {
     }
   });
   //User Login Route
-  router.post('/authenticate', function(req, res) {
+  router.post('/authenticate', (req, res) => {
+    let validPassword;
     User.findOne({ username: req.body.username })
       .select('email username password')
-      .exec(function(err, user) {
+      .exec((err, user) => {
         if (err) throw err;
 
         if (!user) {
           res.json({ success: false, message: 'Could not authenticate user' });
-        } else if (user) {
+        } else {
           if (req.body.password) {
-            const validPassword = user.comparePassword(req.body.password);
+            validPassword = user.comparePassword(req.body.password);
+
+            if (!validPassword) {
+              res.json({
+                success: false,
+                message: 'Could not authenticate password',
+              });
+            } else {
+              const token = jwt.sign(
+                { username: user.username, email: user.email },
+                secret,
+                { expiresIn: '1min' }
+              );
+              console.log({
+                success: true,
+                message: 'User authenticated',
+                token: token,
+              });
+              res.redirect('/login');
+            }
           } else {
             res.json({ success: false, message: 'No password provided' });
-          }
-          if (!validPassword) {
-            res.json({
-              success: false,
-              message: 'Could not authenticate password',
-            });
-          } else {
-            const token = jwt.sign(
-              { username: user.username, email: user.email },
-              secret,
-              { expiresIn: '24h' }
-            );
-            // process.env['JWT'] = token;
-            console.log({
-              success: true,
-              message: 'User authenticated',
-              token: token,
-            });
-            res.redirect('/login');
           }
         }
       });
   });
 
-  router.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname + '/login.html'));
-  });
-
-  router.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname + '/index.html'));
-  });
-
-  router.get('logout', (req, res) => {
-    res.sendFile(path.join(__dirname + '/login.html'));
-  });
-
-  router.get('/redirect', (req, res) => {
-    const regex = /\/\//;
-    if (req.query.url) {
-      let urle = req.query.url;
-      let url = decodeURIComponent(urle);
-      if (regex.test(urle) && process.argv.slice(2)[0] !== 'unsecure') {
-        res.status('400').end('unvalidated redirection is not allowed');
-      } else {
-        res.redirect(url);
-      }
-    }
-    res.status('400').end('Bad request');
-  });
-  router.use(function(req, res, next) {
+  router.use((req, res, next) => {
     const token =
       req.body.token || req.body.query || req.headers['x-access-token'];
 
     if (token) {
       //verify token
-      jwt.verify(token, secret, function(err, decoded) {
+      jwt.verify(token, secret, (err, decoded) => {
         if (err) {
           res.json({ success: false, message: 'token invalid' });
         } else {
@@ -119,5 +93,10 @@ module.exports = function(router) {
     }
   });
 
+  router.get('/users', (req, res) => {
+    User.find({})
+      .then(users => res.send(users))
+      .catch(err => res.send(err));
+  });
   return router;
 };
